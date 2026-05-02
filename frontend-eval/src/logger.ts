@@ -1,12 +1,5 @@
-type Stack = "frontend";
-type Level = "debug" | "info" | "warn" | "error" | "fatal";
-type Package =
-  | "api"
-  | "component"
-  | "hook"
-  | "page"
-  | "state"
-  | "style";
+import { addLog, updateLog } from "./logStore";
+import type { Level, Package, Stack } from "./logStore";
 
 interface LogResponse {
   logID: string;
@@ -44,21 +37,35 @@ export async function Log(
   pkg: Package,
   message: string
 ): Promise<LogResponse | void> {
+  const id = crypto.randomUUID();
+  addLog({
+    id,
+    ts: Date.now(),
+    stack,
+    level,
+    pkg,
+    message,
+    status: "queued",
+  });
+
   try {
     if (!BASE_URL) {
       console.error("Logging failed: missing VITE_BASE_URL (check frontend-eval/.env)");
+      updateLog(id, { status: "failed", error: "Missing VITE_BASE_URL" });
       return;
     }
 
     const expSeconds = getJwtExpSeconds(TOKEN);
     if (!TOKEN) {
       console.error("Logging failed: missing VITE_API_TOKEN (check frontend-eval/.env)");
+      updateLog(id, { status: "failed", error: "Missing VITE_API_TOKEN" });
       return;
     }
     if (expSeconds && expSeconds * 1000 <= Date.now()) {
       console.error(
         `Logging failed: VITE_API_TOKEN is expired (exp ${new Date(expSeconds * 1000).toISOString()}). Update frontend-eval/.env and restart dev server.`
       );
+      updateLog(id, { status: "failed", error: "Token expired" });
       return;
     }
 
@@ -93,9 +100,21 @@ export async function Log(
 
     const data: LogResponse = await res.json();
     console.log("Log success:", data);
+    updateLog(id, { status: "sent", remoteLogID: data.logID });
 
     return data;
   } catch (err: any) {
     console.error("Logging failed:", err.message);
+    updateLog(id, { status: "failed", error: String(err?.message ?? err) });
   }
+}
+
+export async function fetchRemoteLogs(): Promise<unknown> {
+  if (!BASE_URL || !TOKEN) return null;
+  const res = await fetch(BASE_URL, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${TOKEN}` },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
 }

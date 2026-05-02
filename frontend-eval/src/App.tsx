@@ -1,6 +1,7 @@
 import AllNotifications from "./pages/AllNotifications";
 import PriorityNotifications from "./pages/PriorityNotifications";
 import { Box, Container, Paper, Stack, Typography } from "@mui/material";
+import LogsPanel from "./components/LogsPanel";
 
 function App() {
   return (
@@ -27,6 +28,10 @@ function App() {
           <AllNotifications />
         </Paper>
       </Box>
+
+      <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
+        <LogsPanel />
+      </Paper>
     </Container>
   );
 }
