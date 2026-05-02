@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Log } from "./logger";
+import { getTopNotifications } from "./notifications";
 
 interface User {
   id: number;
@@ -23,7 +24,6 @@ function App() {
         if (!res.ok) {
           throw new Error("Failed to fetch users");
         }
-
         const data: User[] = await res.json();
         setUsers(data);
 
@@ -38,6 +38,7 @@ function App() {
 
     Log("frontend", "info", "component", "App mounted");
     fetchUsers();
+    void getTopNotifications();
   }, []);
 
   return (
