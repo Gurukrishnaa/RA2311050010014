@@ -11,8 +11,9 @@ interface ApiResponse {
   notifications: Notification[];
 }
 
-const BASE_URL = "http://20.207.122.201/evaluation-service/notifications";
 const TOKEN = import.meta.env.VITE_API_TOKEN;
+const EVALUATION_BASE =
+  import.meta.env.VITE_EVALUATION_BASE ?? "http://20.207.122.201/evaluation-service";
 
 const priorityMap: Record<string, number> = {
   Placement: 3,
@@ -24,7 +25,7 @@ export async function getTopNotifications() {
   try {
     Log("frontend", "info", "api", "Fetching notifications");
 
-    const res = await fetch(BASE_URL, {
+    const res = await fetch(`${EVALUATION_BASE}/notifications`, {
       headers: {
         Authorization: `Bearer ${TOKEN}`,
       },

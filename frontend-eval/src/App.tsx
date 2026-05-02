@@ -1,70 +1,33 @@
-import { useEffect, useState } from "react";
-import { Log } from "./logger";
-import { getTopNotifications } from "./notifications";
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
+import AllNotifications from "./pages/AllNotifications";
+import PriorityNotifications from "./pages/PriorityNotifications";
+import { Box, Container, Paper, Stack, Typography } from "@mui/material";
 
 function App() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchUsers() {
-      setLoading(true);
-      Log("frontend", "info", "api", "Fetching users started");
-
-      try {
-        const res = await fetch("https://jsonplaceholder.typicode.com/users");
-
-        if (!res.ok) {
-          throw new Error("Failed to fetch users");
-        }
-        const data: User[] = await res.json();
-        setUsers(data);
-
-        Log("frontend", "info", "api", "Users fetched successfully");
-      } catch (err: any) {
-        setError(err.message);
-        Log("frontend", "error", "api", "Error fetching users");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    Log("frontend", "info", "component", "App mounted");
-    fetchUsers();
-    void getTopNotifications();
-  }, []);
-
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>User List</h1>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Stack spacing={2} sx={{ mb: 3 }}>
+        <Typography variant="h4">Campus Notifications</Typography>
+        <Typography color="text.secondary">
+          Priority alerts first, then the complete feed.
+        </Typography>
+      </Stack>
 
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      <ul>
-        {users.map((user) => (
-          <li key={user.id}>
-            <strong>{user.name}</strong> — {user.email}
-          </li>
-        ))}
-      </ul>
-
-      <button
-        onClick={() => {
-          Log("frontend", "debug", "component", "Button clicked");
-          alert("Button clicked");
+      <Box
+        sx={{
+          display: "grid",
+          gap: 2,
+          gridTemplateColumns: { xs: "1fr", md: "5fr 7fr" },
+          alignItems: "start",
         }}
       >
-        Click Me
-      </button>
-    </div>
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <PriorityNotifications />
+        </Paper>
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <AllNotifications />
+        </Paper>
+      </Box>
+    </Container>
   );
 }
 
